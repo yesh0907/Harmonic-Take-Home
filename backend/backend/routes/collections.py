@@ -1,6 +1,6 @@
 import uuid
 
-from fastapi import APIRouter, Depends, Query
+from fastapi import APIRouter, Depends, Query, Body, HTTPException
 from pydantic import BaseModel
 from sqlalchemy import func
 from sqlalchemy.orm import Session
@@ -24,6 +24,9 @@ class CompanyCollectionMetadata(BaseModel):
 
 class CompanyCollectionOutput(CompanyBatchOutput, CompanyCollectionMetadata):
     pass
+
+class AddCompaniesToCollectionOutput(BaseModel):
+    success: bool
 
 
 @router.get("", response_model=list[CompanyCollectionMetadata])
@@ -69,3 +72,35 @@ def get_company_collection_by_id(
         companies=companies,
         total=total_count,
     )
+
+@router.post("/{collection_id}/add", response_model=AddCompaniesToCollectionOutput)
+def add_companies_to_collection(
+    collection_id: uuid.UUID,
+    company_ids: list[int] = Body(),
+    db: Session = Depends(database.get_db)
+):
+    target_list = (
+        db.query(database.CompanyCollection)
+        .filter(database.CompanyCollection.id == collection_id)
+        .first()
+    )
+
+    if target_list is None:
+        raise HTTPException(status_code=400, detail="Collection not found")
+    
+    companies = (
+        db.query(database.Company).filter(database.Company.id.in_(company_ids)).all()
+    )
+
+    associations = [
+        database.CompanyCollectionAssociation(
+            company_id=company.id, collection_id=collection_id
+        )
+        for company in companies
+    ]
+    db.bulk_save_objects(associations)
+    db.commit()
+    
+    return {
+        "success": True
+    }
