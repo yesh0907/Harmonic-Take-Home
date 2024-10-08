@@ -2,7 +2,7 @@ import uuid
 
 from fastapi import APIRouter, Depends, Query, Body, HTTPException
 from pydantic import BaseModel
-from sqlalchemy import func
+from sqlalchemy import func, and_
 from sqlalchemy.orm import Session
 
 from backend.db import database
@@ -77,7 +77,7 @@ def get_company_collection_by_id(
     )
 
 @router.post("/{collection_id}/add", response_model=AddCompaniesToCollectionOutput)
-async def add_companies_to_collection(
+def add_companies_to_collection(
     collection_id: uuid.UUID,
     body: AddCompaniesToCollectionBody = Body(),
     db: Session = Depends(database.get_db)
@@ -91,23 +91,30 @@ async def add_companies_to_collection(
     if target_list is None:
         raise HTTPException(status_code=400, detail="Collection not found")
     
-    if len(body.company_ids) == 0:
-        raise HTTPException(status_code=400, detail="Company ids are empty")
-    
+    batch_size = 1000
+    associations_to_create = []
+
     for company_id in body.company_ids:
-        existing_association = (
+        association_exists = (
             db.query(database.CompanyCollectionAssociation)
-            .filter_by(collection_id=collection_id, company_id=company_id)
+            .filter(
+                and_(
+                    database.CompanyCollectionAssociation.collection_id == collection_id,
+                    database.CompanyCollectionAssociation.company_id == company_id
+                )
+            )
             .first()
         )
 
-        if existing_association is None:
-            db.add(database.CompanyCollectionAssociation(
-                collection_id=collection_id, company_id=company_id
-            ))
-        else:
-            pass
+        if not association_exists:
+            association = database.CompanyCollectionAssociation(collection_id=collection_id, company_id=company_id)
+            associations_to_create.append(association)
+        
 
+    for i in range(0, len(associations_to_create), batch_size):
+        batch_assosciations = associations_to_create[i:i+batch_size]
+        db.add_all(batch_assosciations)
+    
     db.commit()
     
     return {
