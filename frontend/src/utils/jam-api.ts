@@ -21,6 +21,17 @@ export interface IAddCompaniesToCollectionResponse {
   success: boolean;
 }
 
+export interface ITaskCreatedResponse {
+  task_id: string;
+  message: string;
+}
+
+export interface ITask {
+  status: "in_progress" | "completed" | "failed";
+  progress: number;
+  error_msg?: string;
+}
+
 const BASE_URL = "http://localhost:8000";
 
 export async function getCompanies(
@@ -84,6 +95,34 @@ export async function addCompaniesToCollection(
     return response.data;
   } catch (error) {
     console.error("Error adding companies:", error);
+    throw error;
+  }
+}
+
+export async function addAllCompaniesToCollection(
+  source_collection_id: string,
+  target_collection_id: string
+): Promise<ITaskCreatedResponse> {
+  try {
+    const response = await axios.post(`${BASE_URL}/collections/add-all`, {
+      source_collection_id,
+      target_collection_id,
+    });
+    return response.data;
+  } catch (error) {
+    console.error("Error adding all companies:", error);
+    throw error;
+  }
+}
+
+export async function getTaskStatus(
+  task_id: string,
+): Promise<ITask> {
+  try {
+    const response = await axios.get(`${BASE_URL}/tasks/${task_id}`);
+    return response.data;
+  } catch (error) {
+    console.log("Error getting task status:", error);
     throw error;
   }
 }

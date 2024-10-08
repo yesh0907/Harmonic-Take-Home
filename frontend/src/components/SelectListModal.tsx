@@ -2,7 +2,11 @@ import { Button, Card, CardContent, CardHeader, Modal } from "@mui/material";
 import { useContext } from "react";
 import { AppContext } from "../context/app.context";
 import Close from "@mui/icons-material/Close";
-import { addCompaniesToCollection, ICollection } from "../utils/jam-api";
+import {
+  addAllCompaniesToCollection,
+  addCompaniesToCollection,
+  ICollection,
+} from "../utils/jam-api";
 import { toast } from "sonner";
 
 export default function SelectListModal() {
@@ -12,27 +16,50 @@ export default function SelectListModal() {
     selectedCollectionId,
     showSelectListModal,
     setShowSelectListModal,
+    setTaskId,
   } = useContext(AppContext);
 
   function closeModal() {
     setShowSelectListModal(false);
   }
 
-  function handleSelect(list: ICollection) {
+  function handleSelect(targetList: ICollection) {
     const nbOfCompanies = companyIds.length;
-    const listName = list.collection_name;
-    toast.info(`Adding ${nbOfCompanies} items to ${listName}`);
-    addCompaniesToCollection(list.id, companyIds)
-      .then((res) => {
-        if (res.success) {
-          toast.success(`Added ${nbOfCompanies} items to ${listName}`);
-        } else {
-          toast.error("Failed to add items");
-        }
-      })
-      .catch(() => {
-        toast.error(`Failed to add items to ${listName}`);
-      });
+    const targetListName = targetList.collection_name;
+
+    if (nbOfCompanies === 0) {
+      const sourceList = collections.filter(
+        (c) => c.id === selectedCollectionId
+      )[0];
+      // add all companies
+      toast.info(
+        `Adding all items from ${sourceList.collection_name} to ${targetListName}`
+      );
+      addAllCompaniesToCollection(sourceList.id, targetList.id)
+        .then((res) => {
+          if (res.task_id) {
+            setTaskId(res.task_id);
+          } else {
+            toast.error("Failed to create task");
+          }
+        })
+        .catch(() => {
+          toast.error(`Failed to add all items`);
+        });
+    } else {
+      toast.info(`Adding ${nbOfCompanies} items to ${targetListName}`);
+      addCompaniesToCollection(targetList.id, companyIds)
+        .then((res) => {
+          if (res.success) {
+            toast.success(`Added ${nbOfCompanies} items to ${targetListName}`);
+          } else {
+            toast.error("Failed to add items");
+          }
+        })
+        .catch(() => {
+          toast.error(`Failed to add items to ${targetListName}`);
+        });
+    }
     closeModal();
   }
 

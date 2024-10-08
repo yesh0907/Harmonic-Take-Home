@@ -1,5 +1,5 @@
 import { createContext, ReactNode, useState } from "react";
-import { ICollection } from "../utils/jam-api";
+import { ICollection, ITask } from "../utils/jam-api";
 
 interface IAppContext {
   collections: ICollection[];
@@ -10,6 +10,10 @@ interface IAppContext {
   setSelectedItemIds: (ids: string[]) => void;
   showSelectListModal: boolean;
   setShowSelectListModal: (newVal: boolean) => void;
+  taskId?: string;
+  setTaskId: (id: string) => void;
+  task?: ITask;
+  setTask: (t: ITask) => void;
 }
 
 export const AppContext = createContext<IAppContext>({
@@ -20,6 +24,8 @@ export const AppContext = createContext<IAppContext>({
   setSelectedItemIds: () => {},
   showSelectListModal: false,
   setShowSelectListModal: () => {},
+  setTaskId: () => {},
+  setTask: () => {},
 });
 
 interface IAppContextProviderProps {
@@ -32,6 +38,8 @@ export function AppContextProvider({ children }: IAppContextProviderProps) {
   const [selectedItemIds, setSelectedItemIds] = useState<string[]>([]);
   const [showSelectListModal, setShowSelectListModal] =
     useState<boolean>(false);
+  const [taskId, setTaskId] = useState<string>();
+  const [task, setTask] = useState<ITask>();
 
   return (
     <AppContext.Provider
@@ -45,6 +53,10 @@ export function AppContextProvider({ children }: IAppContextProviderProps) {
         setSelectedItemIds: (ids) => setSelectedItemIds(ids),
         showSelectListModal,
         setShowSelectListModal: (newVal) => setShowSelectListModal(newVal),
+        taskId,
+        setTaskId: (id) => setTaskId(id),
+        task,
+        setTask: (t) => setTask(t),
       }}
     >
       {children}

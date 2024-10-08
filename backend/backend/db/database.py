@@ -13,15 +13,18 @@ from sqlalchemy import (
     UniqueConstraint,
     create_engine,
     func,
+    Index
 )
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
+from sqlalchemy.pool import QueuePool
 
 SQLALCHEMY_DATABASE_URL = os.getenv('DATABASE_URL')
 
 engine = create_engine(
     SQLALCHEMY_DATABASE_URL,
+    poolclass=QueuePool
 )
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
@@ -64,6 +67,7 @@ class CompanyCollectionAssociation(Base):
 
     __table_args__ = (
         UniqueConstraint('company_id', 'collection_id', name='uq_company_collection'),
+        Index('idx_collection_company', 'collection_id', 'company_id'),
     )
     
     created_at: Union[datetime, Column[datetime]] = Column(

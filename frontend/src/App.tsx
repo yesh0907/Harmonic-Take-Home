@@ -11,6 +11,7 @@ import { AppContext } from "./context/app.context";
 import Collection from "./components/Collection";
 import SelectListModal from "./components/SelectListModal";
 import { Toaster } from "sonner";
+import TaskProgress from "./components/TaskProgress";
 
 const darkTheme = createTheme({
   palette: {
@@ -49,6 +50,7 @@ function App() {
                 <Collection key={collection.id} collection={collection} />
               ))}
             </div>
+            <TaskProgress />
           </div>
           <div className="w-4/5 ml-4">
             <CompanyTable />

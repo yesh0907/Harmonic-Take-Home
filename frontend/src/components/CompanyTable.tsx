@@ -1,4 +1,4 @@
-import { DataGrid } from "@mui/x-data-grid";
+import { DataGrid, GridPaginationModel } from "@mui/x-data-grid";
 import { useContext, useEffect, useState } from "react";
 import { getCollectionsById, ICompany } from "../utils/jam-api";
 import { AppContext } from "../context/app.context";
@@ -6,27 +6,39 @@ import { AppContext } from "../context/app.context";
 const CompanyTable = () => {
   const { selectedCollectionId, setSelectedItemIds } = useContext(AppContext);
 
+  const [loading, setLoading] = useState<boolean>(false);
   const [response, setResponse] = useState<ICompany[]>([]);
   const [total, setTotal] = useState<number>();
-  const [offset, setOffset] = useState<number>(0);
-  const [pageSize, setPageSize] = useState(25);
+  const [paginationModel, setPaginationModel] = useState<GridPaginationModel>({
+    page: 0,
+    pageSize: 25,
+  });
 
   useEffect(() => {
     if (selectedCollectionId) {
-      getCollectionsById(selectedCollectionId, offset, pageSize).then(
-        (newResponse) => {
+      setLoading(true);
+      getCollectionsById(selectedCollectionId, paginationModel.page * paginationModel.pageSize, paginationModel.pageSize)
+        .then((newResponse) => {
           setResponse(newResponse.companies);
           setTotal(newResponse.total);
-        }
-      );
+        })
+        .finally(() => setLoading(false));
     }
-  }, [selectedCollectionId, offset, pageSize]);
+  }, [selectedCollectionId, paginationModel]);
 
   useEffect(() => {
-    setOffset(0);
+    setPaginationModel({ page: 0, pageSize: 25 });
   }, [selectedCollectionId]);
 
   if (!selectedCollectionId || !response) return null;
+
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center h-64">
+        <div className="animate-spin rounded-full h-16 w-16 border-t-4 border-orange-500"></div>
+      </div>
+    );
+  }
 
   return (
     <div style={{ height: 800, width: "100%" }}>
@@ -38,19 +50,12 @@ const CompanyTable = () => {
           { field: "id", headerName: "ID", width: 90 },
           { field: "company_name", headerName: "Company Name", width: 200 },
         ]}
-        initialState={{
-          pagination: {
-            paginationModel: { page: 0, pageSize: 25 },
-          },
-        }}
+        paginationModel={paginationModel}
+        onPaginationModelChange={setPaginationModel}
         rowCount={total}
         pagination
         checkboxSelection
         paginationMode="server"
-        onPaginationModelChange={(newMeta) => {
-          setPageSize(newMeta.pageSize);
-          setOffset(newMeta.page * newMeta.pageSize);
-        }}
         onRowSelectionModelChange={(rowIds, { api }) => {
           console.log("rowIds", rowIds);
           if (!rowIds) {
