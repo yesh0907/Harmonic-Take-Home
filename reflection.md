@@ -21,5 +21,15 @@
 
 ## Tradeoffs
 - I wanted to create an MVP asap, so I avoided caching data
+- I had a hard time figuring out how to get all the selected rows from the table across different pages, so the user is limited to selecting as many items on the page at one time
+- I worked on this assignment during a 16 hour train ride with limited internet access, I was very limited on the tools I could use to help me, so a lot of UI elements were made using a naive HTML approach
+
 
 ## Next steps
+- Fixing bugs:
+    - allow the user can select multiple items across pages
+    - keep the task id in local storage until it is done
+    - prevent the scroll of table from being reset every paginated request
+- Instead of polling, use server side events or websockets to get updates on the task's status
+- Use the MUI List component or an autocomplete to select which list to copy data to
+- I cut a lot of corners to only support the "happy path", I would love to stress
