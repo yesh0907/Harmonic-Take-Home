@@ -77,7 +77,7 @@ def get_company_collection_by_id(
     )
 
 @router.post("/{collection_id}/add", response_model=AddCompaniesToCollectionOutput)
-def add_companies_to_collection(
+async def add_companies_to_collection(
     collection_id: uuid.UUID,
     body: AddCompaniesToCollectionBody = Body(),
     db: Session = Depends(database.get_db)
@@ -91,17 +91,23 @@ def add_companies_to_collection(
     if target_list is None:
         raise HTTPException(status_code=400, detail="Collection not found")
     
-    companies = (
-        db.query(database.Company).filter(database.Company.id.in_(body.company_ids)).all()
-    )
-
-    associations = [
-        database.CompanyCollectionAssociation(
-            company_id=company.id, collection_id=collection_id
+    if len(body.company_ids) == 0:
+        raise HTTPException(status_code=400, detail="Company ids are empty")
+    
+    for company_id in body.company_ids:
+        existing_association = (
+            db.query(database.CompanyCollectionAssociation)
+            .filter_by(collection_id=collection_id, company_id=company_id)
+            .first()
         )
-        for company in companies
-    ]
-    db.bulk_save_objects(associations)
+
+        if existing_association is None:
+            db.add(database.CompanyCollectionAssociation(
+                collection_id=collection_id, company_id=company_id
+            ))
+        else:
+            pass
+
     db.commit()
     
     return {
