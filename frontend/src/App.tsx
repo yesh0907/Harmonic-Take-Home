@@ -46,7 +46,7 @@ function App() {
             <p className="font-bold border-b pb-2">Collections</p>
             <div className="flex flex-col gap-2">
               {collections?.map((collection) => (
-                <Collection collection={collection} />
+                <Collection key={collection.id} collection={collection} />
               ))}
             </div>
           </div>

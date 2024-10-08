@@ -19,16 +19,20 @@ export default function SelectListModal() {
   }
 
   function handleSelect(list: ICollection) {
-    addCompaniesToCollection(list.id, companyIds).then((res) => {
-      console.log(res);
-      if (res.success) {
-        toast.success(
-          `Added ${companyIds.length} items to ${list.collection_name}`
-        );
-      } else {
-        toast.error("Failed to add items");
-      }
-    });
+    const nbOfCompanies = companyIds.length;
+    const listName = list.collection_name;
+    toast.info(`Adding ${nbOfCompanies} items to ${listName}`);
+    addCompaniesToCollection(list.id, companyIds)
+      .then((res) => {
+        if (res.success) {
+          toast.success(`Added ${nbOfCompanies} items to ${listName}`);
+        } else {
+          toast.error("Failed to add items");
+        }
+      })
+      .catch(() => {
+        toast.error(`Failed to add items to ${listName}`);
+      });
     closeModal();
   }
 

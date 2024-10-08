@@ -26,7 +26,7 @@ const CompanyTable = () => {
     setOffset(0);
   }, [selectedCollectionId]);
 
-  if (!selectedCollectionId) return null;
+  if (!selectedCollectionId || !response) return null;
 
   return (
     <div style={{ height: 800, width: "100%" }}>
@@ -52,8 +52,15 @@ const CompanyTable = () => {
           setOffset(newMeta.page * newMeta.pageSize);
         }}
         onRowSelectionModelChange={(rowIds, { api }) => {
-          const companyIds = rowIds.map((rowId) => api.getRow(rowId).id);
-          setSelectedItemIds(companyIds);
+          console.log("rowIds", rowIds);
+          if (!rowIds) {
+            setSelectedItemIds([]);
+          } else {
+            const companyIds = rowIds
+              .map((rowId) => api.getRow(rowId)?.id)
+              .filter((id) => id !== undefined);
+            setSelectedItemIds(companyIds);
+          }
         }}
       />
     </div>
