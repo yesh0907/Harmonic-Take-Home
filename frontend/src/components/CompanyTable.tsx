@@ -1,25 +1,32 @@
 import { DataGrid } from "@mui/x-data-grid";
-import { useEffect, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import { getCollectionsById, ICompany } from "../utils/jam-api";
+import { AppContext } from "../context/app.context";
 
-const CompanyTable = (props: { selectedCollectionId: string }) => {
+const CompanyTable = () => {
+  const { selectedCollectionId, setSelectedItemIds } = useContext(AppContext);
+
   const [response, setResponse] = useState<ICompany[]>([]);
   const [total, setTotal] = useState<number>();
   const [offset, setOffset] = useState<number>(0);
   const [pageSize, setPageSize] = useState(25);
 
   useEffect(() => {
-    getCollectionsById(props.selectedCollectionId, offset, pageSize).then(
-      (newResponse) => {
-        setResponse(newResponse.companies);
-        setTotal(newResponse.total);
-      }
-    );
-  }, [props.selectedCollectionId, offset, pageSize]);
+    if (selectedCollectionId) {
+      getCollectionsById(selectedCollectionId, offset, pageSize).then(
+        (newResponse) => {
+          setResponse(newResponse.companies);
+          setTotal(newResponse.total);
+        }
+      );
+    }
+  }, [selectedCollectionId, offset, pageSize]);
 
   useEffect(() => {
     setOffset(0);
-  }, [props.selectedCollectionId]);
+  }, [selectedCollectionId]);
+
+  if (!selectedCollectionId) return null;
 
   return (
     <div style={{ height: 800, width: "100%" }}>
@@ -43,6 +50,10 @@ const CompanyTable = (props: { selectedCollectionId: string }) => {
         onPaginationModelChange={(newMeta) => {
           setPageSize(newMeta.pageSize);
           setOffset(newMeta.page * newMeta.pageSize);
+        }}
+        onRowSelectionModelChange={(rowIds, { api }) => {
+          const companyIds = rowIds.map((rowId) => api.getRow(rowId).id);
+          setSelectedItemIds(companyIds);
         }}
       />
     </div>
