@@ -32,4 +32,4 @@
     - prevent the scroll of table from being reset every paginated request
 - Instead of polling, use server side events or websockets to get updates on the task's status
 - Use the MUI List component or an autocomplete to select which list to copy data to
-- I cut a lot of corners to only support the "happy path", I would love to stress
+- I cut a lot of corners to only support the "happy path", I would love to account for more edge cases in the application.
