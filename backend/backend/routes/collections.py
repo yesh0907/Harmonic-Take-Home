@@ -25,6 +25,9 @@ class CompanyCollectionMetadata(BaseModel):
 class CompanyCollectionOutput(CompanyBatchOutput, CompanyCollectionMetadata):
     pass
 
+class AddCompaniesToCollectionBody(BaseModel):
+    company_ids: list[int]
+
 class AddCompaniesToCollectionOutput(BaseModel):
     success: bool
 
@@ -76,7 +79,7 @@ def get_company_collection_by_id(
 @router.post("/{collection_id}/add", response_model=AddCompaniesToCollectionOutput)
 def add_companies_to_collection(
     collection_id: uuid.UUID,
-    company_ids: list[int] = Body(),
+    body: AddCompaniesToCollectionBody = Body(),
     db: Session = Depends(database.get_db)
 ):
     target_list = (
@@ -89,7 +92,7 @@ def add_companies_to_collection(
         raise HTTPException(status_code=400, detail="Collection not found")
     
     companies = (
-        db.query(database.Company).filter(database.Company.id.in_(company_ids)).all()
+        db.query(database.Company).filter(database.Company.id.in_(body.company_ids)).all()
     )
 
     associations = [
