@@ -1,7 +1,7 @@
 import uuid
 from fastapi import APIRouter, Depends, Query, Body, HTTPException, BackgroundTasks, status
 from pydantic import BaseModel
-from sqlalchemy import func, and_, not_
+from sqlalchemy import func, and_, not_, text
 from sqlalchemy.orm import Session
 
 from backend.db import database
@@ -99,6 +99,7 @@ def get_company_collection_by_id(
         0, description="The number of items to skip from the beginning"
     ),
     limit: int = Query(10, description="The number of items to fetch"),
+    name: str = Query(None, description="Filter by company name"),
     db: Session = Depends(database.get_db),
 ):
     query = (
@@ -107,7 +108,23 @@ def get_company_collection_by_id(
         .filter(database.CompanyCollectionAssociation.collection_id == collection_id)
     )
 
+    # Define the fuzzy search threshold
+    fuzzy_threshold = 0.1
+
+    if name:
+        # make sure the postgres pg_trgm extension is installed on the db
+        db.execute(text("CREATE EXTENSION IF NOT EXISTS pg_trgm;"))
+
+        # Use the similarity function for fuzzy matching
+        query = query.filter(
+            func.similarity(database.Company.company_name, name) >= fuzzy_threshold
+        )
+
     total_count = query.with_entities(func.count()).scalar()
+
+    if name:
+        # order by similarity to the search term in descending order
+        query = query.order_by(func.similarity(database.Company.company_name, name).desc())
 
     results = query.offset(offset).limit(limit).all()
     companies = fetch_companies_with_liked(db, [company.id for _, company in results])

@@ -7,6 +7,7 @@ from starlette.middleware.cors import CORSMiddleware
 
 from backend.db import database
 from backend.routes import collections, companies, tasks
+import random
 
 
 @asynccontextmanager
@@ -38,7 +39,22 @@ def seed_database(db: Session):
     )
     db.commit()
 
-    companies = [database.Company(company_name=f"Company {i}") for i in range(100000)]
+    company_names = [
+        "Acme Corp", "Globex", "Initech", "Umbrella Corporation", "Stark Industries",
+        "Cyberdyne Systems", "Oscorp", "Weyland-Yutani", "Tyrell Corporation", "Soylent Corp",
+        "Wonka Industries", "Dunder Mifflin", "Hooli", "Pied Piper", "Prestige Worldwide"
+    ]
+
+    companies = []
+    used_names = set()
+    for i in range(100000):
+        if not company_names:
+            company_name = f"Company {i}"
+        else:
+            company_name = random.choice(company_names)
+            company_names.remove(company_name)
+            used_names.add(company_name)
+        companies.append(database.Company(company_name=company_name))
     db.bulk_save_objects(companies)
     db.commit()
 
