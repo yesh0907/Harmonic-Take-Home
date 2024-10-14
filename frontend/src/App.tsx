@@ -12,6 +12,7 @@ import Collection from "./components/Collection";
 import SelectListModal from "./components/SelectListModal";
 import { Toaster } from "sonner";
 import TaskProgress from "./components/TaskProgress";
+import Search from "./components/Search";
 
 const darkTheme = createTheme({
   palette: {
@@ -40,6 +41,7 @@ function App() {
           <div className="font-bold text-xl border-b p-2 mb-4 text-left">
             Harmonic Jam
           </div>
+          <Search />
           <AddToListBtn />
         </div>
         <div className="flex">

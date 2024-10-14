@@ -14,6 +14,8 @@ interface IAppContext {
   setTaskId: (id: string) => void;
   task?: ITask;
   setTask: (t: ITask) => void;
+  search?: string;
+  setSearch: (val: string) => void;
 }
 
 export const AppContext = createContext<IAppContext>({
@@ -26,6 +28,7 @@ export const AppContext = createContext<IAppContext>({
   setShowSelectListModal: () => {},
   setTaskId: () => {},
   setTask: () => {},
+  setSearch: () => {},
 });
 
 interface IAppContextProviderProps {
@@ -40,6 +43,7 @@ export function AppContextProvider({ children }: IAppContextProviderProps) {
     useState<boolean>(false);
   const [taskId, setTaskId] = useState<string>();
   const [task, setTask] = useState<ITask>();
+  const [search, setSearch] = useState<string>();
 
   return (
     <AppContext.Provider
@@ -57,6 +61,8 @@ export function AppContextProvider({ children }: IAppContextProviderProps) {
         setTaskId: (id) => setTaskId(id),
         task,
         setTask: (t) => setTask(t),
+        search,
+        setSearch: (val) => setSearch(val),
       }}
     >
       {children}

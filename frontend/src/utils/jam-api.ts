@@ -55,13 +55,15 @@ export async function getCompanies(
 export async function getCollectionsById(
   id: string,
   offset?: number,
-  limit?: number
+  limit?: number,
+  name?: string
 ): Promise<ICollection> {
   try {
     const response = await axios.get(`${BASE_URL}/collections/${id}`, {
       params: {
         offset,
         limit,
+        name,
       },
     });
     return response.data;
@@ -115,9 +117,7 @@ export async function addAllCompaniesToCollection(
   }
 }
 
-export async function getTaskStatus(
-  task_id: string,
-): Promise<ITask> {
+export async function getTaskStatus(task_id: string): Promise<ITask> {
   try {
     const response = await axios.get(`${BASE_URL}/tasks/${task_id}`);
     return response.data;

@@ -4,7 +4,8 @@ import { getCollectionsById, ICompany } from "../utils/jam-api";
 import { AppContext } from "../context/app.context";
 
 const CompanyTable = () => {
-  const { selectedCollectionId, setSelectedItemIds } = useContext(AppContext);
+  const { search, selectedCollectionId, setSelectedItemIds } =
+    useContext(AppContext);
 
   const [loading, setLoading] = useState<boolean>(false);
   const [response, setResponse] = useState<ICompany[]>([]);
@@ -14,17 +15,32 @@ const CompanyTable = () => {
     pageSize: 25,
   });
 
+  function getCompanies() {
+    setLoading(true);
+    getCollectionsById(
+      selectedCollectionId as string,
+      paginationModel.page * paginationModel.pageSize,
+      paginationModel.pageSize,
+      search
+    )
+      .then((newResponse) => {
+        setResponse(newResponse.companies);
+        setTotal(newResponse.total);
+      })
+      .finally(() => setLoading(false));
+  }
+
   useEffect(() => {
     if (selectedCollectionId) {
-      setLoading(true);
-      getCollectionsById(selectedCollectionId, paginationModel.page * paginationModel.pageSize, paginationModel.pageSize)
-        .then((newResponse) => {
-          setResponse(newResponse.companies);
-          setTotal(newResponse.total);
-        })
-        .finally(() => setLoading(false));
+      getCompanies();
     }
   }, [selectedCollectionId, paginationModel]);
+
+  useEffect(() => {
+    if (search) {
+      getCompanies();
+    }
+  }, [search]);
 
   useEffect(() => {
     setPaginationModel({ page: 0, pageSize: 25 });
